@@ -26,3 +26,6 @@ utils/bbox/nms.c
 demo/img
 # 忽略 demo 输出路径
 demo/output
+
+# 忽略 vscode 自动生成的文件
+.vscode
