@@ -13,9 +13,12 @@ from nets import model_train as model
 from utils.rpn_msr.proposal_layer import proposal_layer
 from utils.text_connector.detectors import TextDetector
 
-tf.app.flags.DEFINE_string('test_data_path', 'data/demo/', '')
-tf.app.flags.DEFINE_string('output_path', 'data/res/', '')
+# 图片输入路径
+tf.app.flags.DEFINE_string('test_data_path', 'demo/img/', '')
+# 识别结果输出路径
+tf.app.flags.DEFINE_string('output_path', 'demo/output/', '')
 tf.app.flags.DEFINE_string('gpu', '0', '')
+# 已经训练好的模型加载路径
 tf.app.flags.DEFINE_string('checkpoint_path', 'checkpoints_mlt/', '')
 FLAGS = tf.app.flags.FLAGS
 
