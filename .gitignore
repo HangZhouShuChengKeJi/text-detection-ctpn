@@ -17,3 +17,7 @@ checkpoints_*/
 *.swp
 *.pb
 *.ckpt
+
+# 忽略由 Cython 自动生成的 c 文件
+utils/bbox/bbox.c
+utils/bbox/nms.c
