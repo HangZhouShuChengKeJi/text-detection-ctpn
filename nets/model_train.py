@@ -16,12 +16,12 @@ def mean_image_subtraction(images, means=[123.68, 116.78, 103.94]):
 
 
 def make_var(name, shape, initializer=None):
-    return tf.get_variable(name, shape, initializer=initializer)
+    return tf.compat.v1.get_variable(name, shape, initializer=initializer)
 
 
 def Bilstm(net, input_channel, hidden_unit_num, output_channel, scope_name):
     # width--->time step
-    with tf.variable_scope(scope_name) as scope:
+    with tf.compat.v1.variable_scope(scope_name) as scope:
         shape = tf.shape(net)
         N, H, W, C = shape[0], shape[1], shape[2], shape[3]
         net = tf.reshape(net, [N * H, W, C])
@@ -47,7 +47,7 @@ def Bilstm(net, input_channel, hidden_unit_num, output_channel, scope_name):
 
 
 def lstm_fc(net, input_channel, output_channel, scope_name):
-    with tf.variable_scope(scope_name) as scope:
+    with tf.compat.v1.variable_scope(scope_name) as scope:
         shape = tf.shape(net)
         N, H, W, C = shape[0], shape[1], shape[2], shape[3]
         net = tf.reshape(net, [N * H * W, C])

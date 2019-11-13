@@ -58,21 +58,30 @@ def main(argv=None):
     if os.path.exists(FLAGS.output_path):
         shutil.rmtree(FLAGS.output_path)
     os.makedirs(FLAGS.output_path)
-    os.environ['CUDA_VISIBLE_DEVICES'] = FLAGS.gpu
 
-    with tf.get_default_graph().as_default():
-        input_image = tf.placeholder(tf.float32, shape=[None, None, None, 3], name='input_image')
-        input_im_info = tf.placeholder(tf.float32, shape=[None, 3], name='input_im_info')
+    # 设置使用哪块 GPU
+    os.environ['CUDA_VISIBLE_DEVICES'] = "1"
 
-        global_step = tf.get_variable('global_step', [], initializer=tf.constant_initializer(0), trainable=False)
+    with tf.compat.v1.get_default_graph().as_default():
+        input_image = tf.compat.v1.placeholder(tf.float32, shape=[None, None, None, 3], name='input_image')
+        input_im_info = tf.compat.v1.placeholder(tf.float32, shape=[None, 3], name='input_im_info')
+
+        global_step = tf.compat.v1.get_variable('global_step', [], initializer=tf.constant_initializer(0), trainable=False)
 
         bbox_pred, cls_pred, cls_prob = model.model(input_image)
 
         variable_averages = tf.train.ExponentialMovingAverage(0.997, global_step)
-        saver = tf.train.Saver(variable_averages.variables_to_restore())
+        saver = tf.compat.v1.train.Saver(variable_averages.variables_to_restore())
 
-        with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
-            ckpt_state = tf.train.get_checkpoint_state(FLAGS.checkpoint_path)
+        # tensorflow session 配置
+        sessionConfig = tf.compat.v1.ConfigProto(allow_soft_placement=True) 
+        # 现存占用率
+        # sessionConfig.gpu_options.per_process_gpu_memory_fraction = 0.3
+        # 动态申请内存
+        sessionConfig.gpu_options.allow_growth = True
+
+        with tf.compat.v1.Session(config=sessionConfig) as sess:
+            ckpt_state = tf.compat.v1.train.get_checkpoint_state(FLAGS.checkpoint_path)
             model_path = os.path.join(FLAGS.checkpoint_path, os.path.basename(ckpt_state.model_checkpoint_path))
             print('Restore from {}'.format(model_path))
             saver.restore(sess, model_path)
@@ -121,4 +130,4 @@ def main(argv=None):
 
 
 if __name__ == '__main__':
-    tf.app.run()
+    tf.compat.v1.app.run()
