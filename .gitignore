@@ -22,5 +22,7 @@ checkpoints_*/
 utils/bbox/bbox.c
 utils/bbox/nms.c
 
+# 忽略 demo 输入图片路径
+demo/img
+# 忽略 demo 输出路径
 demo/output
-data/res
