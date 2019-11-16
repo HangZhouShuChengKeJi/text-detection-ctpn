@@ -18,7 +18,7 @@ pip config set global.index-url https://mirrors.huaweicloud.com/repository/pypi/
 ## 安装依赖
 ```sh
 pip install opencv-python
-pip install tensorflow==1.3.0
+pip install tensorflow-gpu==1.13.0
 pip install Cython
 pip install numpy
 ```
