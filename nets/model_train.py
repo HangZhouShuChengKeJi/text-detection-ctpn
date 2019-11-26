@@ -27,46 +27,66 @@ def Bilstm(net, input_channel, hidden_unit_num, output_channel, scope_name):
         net = tf.reshape(net, [N * H, W, C])
         net.set_shape([None, None, input_channel])
 
+        # 长短时记忆单元循环网络单元
         lstm_fw_cell = tf.contrib.rnn.LSTMCell(hidden_unit_num, state_is_tuple=True)
         lstm_bw_cell = tf.contrib.rnn.LSTMCell(hidden_unit_num, state_is_tuple=True)
 
         lstm_out, last_state = tf.nn.bidirectional_dynamic_rnn(lstm_fw_cell, lstm_bw_cell, net, dtype=tf.float32)
         lstm_out = tf.concat(lstm_out, axis=-1)
 
+        # 改变矩阵形状
         lstm_out = tf.reshape(lstm_out, [N * H * W, 2 * hidden_unit_num])
 
+        # 方差缩放初始化
         init_weights = tf.contrib.layers.variance_scaling_initializer(factor=0.01, mode='FAN_AVG', uniform=False)
+        # 将偏置项初始化为 0
         init_biases = tf.constant_initializer(0.0)
+
+        # 创建权重变量
         weights = make_var('weights', [2 * hidden_unit_num, output_channel], init_weights)
+        # 创建偏置变量
         biases = make_var('biases', [output_channel], init_biases)
 
+        # 矩阵乘法
         outputs = tf.matmul(lstm_out, weights) + biases
 
+        # 改变矩阵形状
         outputs = tf.reshape(outputs, [N, H, W, output_channel])
         return outputs
 
 
 def lstm_fc(net, input_channel, output_channel, scope_name):
+    # 变量作用域
     with tf.compat.v1.variable_scope(scope_name) as scope:
         shape = tf.shape(net)
         N, H, W, C = shape[0], shape[1], shape[2], shape[3]
         net = tf.reshape(net, [N * H * W, C])
 
+        # 方差缩放初始化
         init_weights = tf.contrib.layers.variance_scaling_initializer(factor=0.01, mode='FAN_AVG', uniform=False)
+
+        # 将偏置项初始化为 0
         init_biases = tf.constant_initializer(0.0)
+
+        # 创建权重变量
         weights = make_var('weights', [input_channel, output_channel], init_weights)
+        # 创建偏置变量
         biases = make_var('biases', [output_channel], init_biases)
 
+        # 矩阵乘法
         output = tf.matmul(net, weights) + biases
+        # 改变矩阵形状
         output = tf.reshape(output, [N, H, W, output_channel])
     return output
 
 
 def model(image):
+    # 图像去均值
     image = mean_image_subtraction(image)
     with slim.arg_scope(vgg.vgg_arg_scope()):
         conv5_3 = vgg.vgg_16(image)
 
+    # 卷积操作
     rpn_conv = slim.conv2d(conv5_3, 512, 3)
 
     lstm_output = Bilstm(rpn_conv, 512, 128, 512, scope_name='BiLSTM')

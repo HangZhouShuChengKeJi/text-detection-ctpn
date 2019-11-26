@@ -37,10 +37,12 @@ def get_images():
 
 
 def resize_image(img):
+    # 图片形状（高宽）
     img_size = img.shape
     im_size_min = np.min(img_size[0:2])
     im_size_max = np.max(img_size[0:2])
 
+    # 保证图片尺寸小于等于 600 * 1200
     im_scale = float(600) / float(im_size_min)
     if np.round(im_scale * im_size_max) > 1200:
         im_scale = float(1200) / float(im_size_max)
@@ -50,6 +52,7 @@ def resize_image(img):
     new_h = new_h if new_h // 16 == 0 else (new_h // 16 + 1) * 16
     new_w = new_w if new_w // 16 == 0 else (new_w // 16 + 1) * 16
 
+    # 缩放图片
     re_im = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
     return re_im, (new_h / img_size[0], new_w / img_size[1])
 
@@ -63,11 +66,15 @@ def main(argv=None):
     os.environ['CUDA_VISIBLE_DEVICES'] = "1"
 
     with tf.compat.v1.get_default_graph().as_default():
+        # 占位符 - 输入图片
         input_image = tf.compat.v1.placeholder(tf.float32, shape=[None, None, None, 3], name='input_image')
+        # 占位符 - 输入图片信息
         input_im_info = tf.compat.v1.placeholder(tf.float32, shape=[None, 3], name='input_im_info')
 
+        # 创建一个变量 global_step
         global_step = tf.compat.v1.get_variable('global_step', [], initializer=tf.constant_initializer(0), trainable=False)
 
+        # tensorflow op
         bbox_pred, cls_pred, cls_prob = model.model(input_image)
 
         variable_averages = tf.train.ExponentialMovingAverage(0.997, global_step)
@@ -81,35 +88,51 @@ def main(argv=None):
         sessionConfig.gpu_options.allow_growth = True
 
         with tf.compat.v1.Session(config=sessionConfig) as sess:
+
+            # 基于 checkpoint 文件(ckpt)加载参数
             ckpt_state = tf.compat.v1.train.get_checkpoint_state(FLAGS.checkpoint_path)
+
+            # 模型路径
             model_path = os.path.join(FLAGS.checkpoint_path, os.path.basename(ckpt_state.model_checkpoint_path))
             print('Restore from {}'.format(model_path))
+
+            # 恢复变量
             saver.restore(sess, model_path)
 
+            # 图片列表
             im_fn_list = get_images()
             for im_fn in im_fn_list:
                 print('===============')
                 print(im_fn)
                 start = time.time()
+
+
                 try:
                     im = cv2.imread(im_fn)[:, :, ::-1]
                 except:
                     print("Error reading image {}!".format(im_fn))
                     continue
 
+                # 压缩图片尺寸，不超过 600 * 1200
                 img, (rh, rw) = resize_image(im)
+                # 高、宽、通道数
                 h, w, c = img.shape
                 im_info = np.array([h, w, c]).reshape([1, 3])
+
+                # 执行运算
                 bbox_pred_val, cls_prob_val = sess.run([bbox_pred, cls_prob],
                                                        feed_dict={input_image: [img],
                                                                   input_im_info: im_info})
 
+                # 根据RPN目标回归值修正anchors并做排序、nms等后处理输出由proposal坐标和batch_ind全0索引组成的blob
                 textsegs, _ = proposal_layer(cls_prob_val, bbox_pred_val, im_info)
                 scores = textsegs[:, 0]
                 textsegs = textsegs[:, 1:5]
 
                 textdetector = TextDetector(DETECT_MODE='H')
                 boxes = textdetector.detect(textsegs, scores[:, np.newaxis], img.shape[:2])
+
+                # 将 python 数组 转换为 numpy 数组
                 boxes = np.array(boxes, dtype=np.int)
 
                 cost_time = (time.time() - start)
