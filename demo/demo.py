@@ -82,7 +82,7 @@ def main(argv=None):
 
         # tensorflow session 配置
         sessionConfig = tf.compat.v1.ConfigProto(allow_soft_placement=True) 
-        # 现存占用率
+        # 显存占用率
         # sessionConfig.gpu_options.per_process_gpu_memory_fraction = 0.3
         # 动态申请内存
         sessionConfig.gpu_options.allow_growth = True
