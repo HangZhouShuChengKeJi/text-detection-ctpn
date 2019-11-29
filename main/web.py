@@ -4,9 +4,13 @@ import os
 import threading
 import getopt
 import queue
+import json
 
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - [%(levelname)s] - %(name)s - %(message)s')
+
+# http 请求模块
+import requests
 
 from flask import Flask
 from flask import request
@@ -19,40 +23,62 @@ logger = logging.getLogger(__file__)
 
 app = Flask(__name__)
 
+# ctpn 工作队列。通过该队列将文件传递给 ctpn 服务
+ctpnWorkerQueue = queue.Queue(1000)
+
+# 等待回调的图片字典，图片文件路径作为字典的 key
+waitCallbackDict = {'fileName': 'url'}
 
 # 支持上传的文件名后缀
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
-
-# ctpn 工作队列。通过该队列将文件传递给 ctpn 服务
-ctpnWorkerQueue = queue.Queue(1000)
 
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route('/')
+def ctpnCallback(fileName, ctpnRes) :
+    # todo 回调改为异步
+    if fileName in waitCallbackDict :
+        url = waitCallbackDict.get(fileName)
+        try:
+            response = requests.post(url = url, data=json.dumps(ctpnRes), headers={'Content-type': 'application/json'})
+            if response.status_code == 200 :
+                logger.info('回调成功')
+                waitCallbackDict.pop(fileName)
+                return
+            logger.warning('回调失败')
+        except Exception as e:
+            logger.exception('回调异常', e)
+
+@app.route('/', methods=['GET'])
 def hello_world():
     return 'Hello, CTPN !'
 
 @app.route('/api/ctpn.htm', methods=['GET', 'POST'])
 def api_ocr():
+    """
+        请求参数：
+            ctpnImg: 需要识别的图片文件
+            callbackUrl: 回调地址。识别结束后，异步通知处理结果
+    """
     if request.method == 'GET':
-        return 'Hello, World!'
+        return 'Hello, CTPN !'
     elif request.method == 'POST':
-        # check if the post request has the file part
         if 'ctpnImg' not in request.files:
             return 'No image!'
         file = request.files['ctpnImg']
-        # if user does not select file, browser also
-        # submit an empty part without filename
         if file.filename == '':
             return 'No image!'
         if file and allowed_file(file.filename):
-            # filename = secure_filename(file.filename)
+            # 保存文件到本地
             imgFilePath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
             file.save(imgFilePath)
+
+            # 添加到待回调集合
+            waitCallbackDict[imgFilePath] = request.form['callbackUrl']
+            # 提交到 ctpn 工作队列
             ctpnWorkerQueue.put(imgFilePath)
-            return 'upload success'
+            return 'ok'
         return 'Image type error!'
     return 'unknown method!'
 
@@ -77,7 +103,7 @@ def main(host, port, workDir, ctpnDebug):
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
     
     # ctpn 服务
-    ctpnService = CTPN(workerQueue = ctpnWorkerQueue, outputPath = outputDir, debug = ctpnDebug)
+    ctpnService = CTPN(workerQueue = ctpnWorkerQueue, callback = ctpnCallback, outputPath = outputDir, debug = ctpnDebug)
 
     def ctpnServiceRun():
         logger.info("启动 CTPN 服务")

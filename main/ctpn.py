@@ -23,8 +23,9 @@ class CTPN:
     # 停止信号
     SIGNAL_STOP = '__stop__'
 
-    def __init__(self, workerQueue = queue.Queue(100), outputPath = 'output/', debug = False):
+    def __init__(self, workerQueue = queue.Queue(100), callback = None, outputPath = 'output/', debug = False):
         self.workerQueue = workerQueue
+        self.callback = callback
         self.outputPath = outputPath
         self.checkpoint_path = 'checkpoints_mlt/'
         self.running = False
@@ -193,6 +194,9 @@ class CTPN:
                                 line = ",".join(str(box[k]) for k in range(8))
                                 line += "," + str(scores[i]) + "\n"
                                 f.writelines(line)
+                    
+                    if self.callback :
+                        self.callback(fileName = imgFilePath, ctpnRes = self.wrapResult(boxes, scores))
         
 if __name__ == '__main__':
 
