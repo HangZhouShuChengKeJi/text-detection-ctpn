@@ -23,9 +23,9 @@ class CTPN:
     # 停止信号
     SIGNAL_STOP = '__stop__'
 
-    def __init__(self, debug = False):
-        self.workerQueue = queue.Queue(1000)
-        self.outputPath = 'demo/output/'
+    def __init__(self, workerQueue = queue.Queue(100), outputPath = 'output/', debug = False):
+        self.workerQueue = workerQueue
+        self.outputPath = outputPath
         self.checkpoint_path = 'checkpoints_mlt/'
         self.running = False
         self.debug = debug
@@ -196,6 +196,9 @@ class CTPN:
         
 if __name__ == '__main__':
 
+    os.environ['CTPN_DEBUG'] = True
+    os.environ['CTPN_OUTPUT_DIR'] = 'C:\\Users\\hanyufei\Workspace\python'
+    
     ctpn = CTPN()
     ctpn.addWorker('demo/img/001.jpg')
     ctpn.start()
