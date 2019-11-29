@@ -40,7 +40,7 @@ class CTPN:
 
     def stop(self) :
         self.running = False
-        self.addWorker(SIGNAL_STOP)
+        self.addWorker(CTPN.SIGNAL_STOP)
 
     def is_stop_signal(self, signal) -> bool:
         return signal == CTPN.SIGNAL_STOP
