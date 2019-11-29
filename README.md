@@ -28,6 +28,9 @@ pip install Cython
 
 # web 需要依赖此模块
 pip install flask
+
+# web 服务中异步回调依赖此模块
+pip install requests
 ```
 
 ## 编译 bbox 和 nms 工具
