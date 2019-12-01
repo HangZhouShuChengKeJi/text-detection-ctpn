@@ -34,7 +34,7 @@ class CTPN:
 
     def addWorker(self, imgFilePath) :
         if self.workerQueue:
-            logger.debug("接收到文件： %s", imgFilePath)
+            logger.debug("接收到文件： {}", imgFilePath)
             self.workerQueue.put_nowait(imgFilePath)
             return True
         return False

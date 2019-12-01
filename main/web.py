@@ -88,13 +88,13 @@ def main(host, port, workDir, ctpnDebug):
     uploadDir = os.path.abspath(os.path.join(workDir, 'upload'))
     if not os.path.exists(uploadDir) :
         os.makedirs(name = uploadDir, exist_ok = True)
-        logger.info('创建上传路径：%s'.format(uploadDir))
+        logger.info('创建上传路径：{}'.format(uploadDir))
 
     # 转换上传路径为绝对路径
     outputDir = os.path.abspath(os.path.join(workDir, 'output'))
     if not os.path.exists(outputDir) :
         os.makedirs(name = outputDir, exist_ok = True)
-        logger.info('创建输出路径：%s'.format(outputDir))
+        logger.info('创建输出路径：{}'.format(outputDir))
 
 
     # 文件上传路径
@@ -154,7 +154,7 @@ if __name__ == '__main__':
         sys.exit()
     else :
         main(host=optionDict.get('--host', '0.0.0.0')
-        , port=int(optionDict.get('--host', '20000'))
+        , port=int(optionDict.get('--port', '20000'))
         , workDir=optionDict.get('--workDir')
         , ctpnDebug=bool(optionDict.get('--ctpnDebug', False)))
 
