@@ -6,7 +6,7 @@
 ## 环境配置
 ```sh
 # 创建环境
-conda create --name python3 python=3.5
+conda create --name python3 python=3.7
 # 切换到新创建的环境
 conda activate python3
 # 升级 pip 版本
@@ -16,9 +16,23 @@ pip config set global.index-url https://mirrors.huaweicloud.com/repository/pypi/
 ```
 
 ## 安装依赖
+
+### 安装 
+Anaconda 下载页：`https://www.anaconda.com/distribution/`
+
+### 安装 Visual Studio
+Visual Studio 下载页： `https://visualstudio.microsoft.com/zh-hans/vs/`。下载开源版本即可。本项目中使用的版本：`Visual Studio Community 2019`.
+
+### 安装 CUDA 和 cuDNN
+CUDA 和 cuDNN 版本需要对应。
++ CUDA 下载地址：`https://developer.nvidia.com/cuda-toolkit-archive`
++ cuDNN 下载地址：`https://developer.nvidia.com/rdp/cudnn-archive`
+
+
+### 安装 python 依赖
 ```sh
 pip install opencv-python
-pip install tensorflow-gpu==1.13.0
+pip install tensorflow-gpu==1.13.1
 pip install numpy
 
 # 用于编译 bbox 和 nms 模块
