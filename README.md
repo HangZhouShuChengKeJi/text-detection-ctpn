@@ -1,5 +1,5 @@
 # text-detection-ctpn
-基于 CTPN 的文本检测。
+基于 CTPN 的文本检测。在 [text-detection-ctpn/](https://github.com/eragonruan/text-detection-ctpn/)  项目基础上做了些优化工作。
 
 # 编译配置
 
