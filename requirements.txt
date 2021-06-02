@@ -39,7 +39,7 @@ tensorflow-gpu==1.15.0
 tensorflow-tensorboard==0.1.8
 termcolor==1.1.0
 UNKNOWN==0.0.0
-urllib3==1.25.7
+urllib3==1.26.5
 Werkzeug==0.16.0
 wincertstore==0.2
 wrapt==1.11.2
